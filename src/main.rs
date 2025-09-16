@@ -1,7 +1,5 @@
 use actix_web::{App, HttpServer, web};
 
-use crate::tracker::swarm::{self};
-
 const HOST: &str = "0.0.0.0";
 const PORT: u16 = 6969;
 
@@ -13,7 +11,7 @@ mod tracker;
 async fn main() -> eyre::Result<()> {
     twink::log::setup();
 
-    let swarm = swarm::open()?;
+    let swarm = redis::open()?;
 
     HttpServer::new(move || {
         App::new()

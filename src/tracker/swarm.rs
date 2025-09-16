@@ -1,7 +1,7 @@
 use std::{net::IpAddr, sync::Arc};
 
 use bincode::{Decode, Encode};
-use deadpool_redis::{Config as RedisConfig, Pool, Runtime, redis::AsyncCommands};
+use deadpool_redis::{Pool, redis::AsyncCommands};
 use serde::{Deserialize, Serialize};
 
 pub type Swarm = Arc<SwarmState>;
@@ -140,14 +140,4 @@ impl Peer {
     pub fn key_leechers(info_hash: &str) -> String {
         format!("info:{info_hash}:leechers")
     }
-}
-
-pub fn open() -> eyre::Result<Swarm> {
-    let host = "redis://127.0.0.1:6379";
-    let redis_config = RedisConfig::from_url(host);
-    let redis_pool = redis_config.create_pool(Some(Runtime::Tokio1))?;
-
-    let swarm = Arc::new(SwarmState::new(redis_pool));
-
-    Ok(swarm)
 }
