@@ -1,6 +1,6 @@
 use std::net::IpAddr;
 
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize, de};
 
 use super::swarm::Peer;
 
@@ -17,13 +17,30 @@ pub enum Event {
 
 #[derive(Debug, Default, Deserialize, Serialize)]
 pub struct AnnounceRequest {
+    #[serde(deserialize_with = "deserialize_url_encode")]
     pub info_hash: String,
+    #[serde(deserialize_with = "deserialize_url_encode")]
+    pub peer_id: String,
     pub port: u16,
     pub left: u64,
     pub event: Option<Event>,
-    pub peer_id: String,
     pub ip: Option<IpAddr>,
     pub numwant: Option<usize>,
+}
+
+fn deserialize_url_encode<'de, D>(deserializer: D) -> Result<String, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let buf: &str = de::Deserialize::deserialize(deserializer)?;
+    let decoded = urlencoding::decode(buf).unwrap().to_string();
+    if decoded.len() == 20 {
+        Ok(decoded)
+    } else {
+        Err(de::Error::custom(
+            "URL-encoded parameters should be 20 bytes in length",
+        ))
+    }
 }
 
 #[derive(Debug, Serialize)]
